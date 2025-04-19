@@ -22,12 +22,22 @@
       width: 100%;
       max-width: 450px;
     }
+    .alert {
+      display: none;
+      margin-bottom: 15px;
+    }
+    .back-to-home {
+      margin-top: 15px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="form-box">
     <h2 class="text-center mb-4">Register</h2>
-    <form onsubmit="return validateRegisterForm()">
+    <div class="alert alert-danger" id="error-message"></div>
+    <div class="alert alert-success" id="success-message"></div>
+    <form id="registerForm">
       <input type="text" id="fullname" class="form-control mb-2" placeholder="Full Name" required>
       <input type="text" id="contact" class="form-control mb-2" placeholder="Contact" required>
       <input type="date" id="dob" class="form-control mb-2" required>
@@ -42,24 +52,69 @@
       <div class="text-center mt-3">
         <a href="login.html">Already have an account? Login</a>
       </div>
+      <div class="back-to-home">
+        <a href="index.html">Back to Home</a>
+      </div>
     </form>
   </div>
 
+  <script src="auth.js"></script>
   <script>
-    function validateRegisterForm() {
-      const fields = ["fullname", "contact", "dob", "registerEmail", "registerPassword"];
-      for (let id of fields) {
-        if (!document.getElementById(id).value) {
-          alert("Please fill all fields.");
-          return false;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if user is already logged in
+      if (isLoggedIn()) {
+        window.location.href = 'index.html';
+      }
+
+      // Handle form submission
+      document.getElementById('registerForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        // Collect form data
+        const userData = {
+          fullname: document.getElementById('fullname').value,
+          contact: document.getElementById('contact').value,
+          dob: document.getElementById('dob').value,
+          email: document.getElementById('registerEmail').value,
+          password: document.getElementById('registerPassword').value,
+          gender: document.querySelector('input[name="gender"]:checked')?.value
+        };
+        
+        // Basic validation
+        if (!userData.fullname || !userData.contact || !userData.dob || 
+            !userData.email || !userData.password || !userData.gender) {
+          showMessage('error', 'Please fill all fields.');
+          return;
         }
-      }
-      const gender = document.querySelector('input[name="gender"]:checked');
-      if (!gender) {
-        alert("Please select gender.");
-        return false;
-      }
-      return true;
+        
+        // Register user
+        const result = await registerUser(userData);
+        
+        if (result.success) {
+          showMessage('success', 'Registration successful! Redirecting to login...');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+        } else {
+          showMessage('error', result.message || 'Registration failed. Please try again.');
+        }
+      });
+    });
+    
+    // Function to display messages
+    function showMessage(type, message) {
+      const element = document.getElementById(type === 'error' ? 'error-message' : 'success-message');
+      element.textContent = message;
+      element.style.display = 'block';
+      
+      // Hide the other message type
+      const otherElement = document.getElementById(type === 'error' ? 'success-message' : 'error-message');
+      otherElement.style.display = 'none';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 5000);
     }
   </script>
 </body>

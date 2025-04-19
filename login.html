@@ -22,30 +22,83 @@
       width: 100%;
       max-width: 400px;
     }
+    .alert {
+      display: none;
+      margin-bottom: 15px;
+    }
+    .back-to-home {
+      margin-top: 15px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
   <div class="form-box">
     <h2 class="text-center mb-4">Login</h2>
-    <form onsubmit="return validateLoginForm()">
+    <div class="alert alert-danger" id="error-message"></div>
+    <div class="alert alert-success" id="success-message"></div>
+    <form id="loginForm">
       <input type="email" id="loginEmail" class="form-control mb-3" placeholder="Email" required>
       <input type="password" id="loginPassword" class="form-control mb-3" placeholder="Password" required>
       <button type="submit" class="btn btn-primary w-100">Login</button>
       <div class="text-center mt-3">
         <a href="register.html">Don't have an account? Register</a>
       </div>
+      <div class="back-to-home">
+        <a href="index.html">Back to Home</a>
+      </div>
     </form>
   </div>
 
+  <script src="auth.js"></script>
   <script>
-    function validateLoginForm() {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      if (!email || !password) {
-        alert("Please fill all fields.");
-        return false;
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if user is already logged in
+      if (isLoggedIn()) {
+        window.location.href = 'index.html';
       }
-      return true;
+      
+      // Handle form submission
+      document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        // Validate inputs
+        if (!email || !password) {
+          showMessage('error', 'Please fill all fields.');
+          return;
+        }
+        
+        // Attempt login
+        const result = await loginUser(email, password);
+        
+        if (result.success) {
+          showMessage('success', 'Login successful! Redirecting...');
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          showMessage('error', result.message || 'Invalid email or password');
+        }
+      });
+    });
+    
+    // Function to display messages
+    function showMessage(type, message) {
+      const element = document.getElementById(type === 'error' ? 'error-message' : 'success-message');
+      element.textContent = message;
+      element.style.display = 'block';
+      
+      // Hide the other message type
+      const otherElement = document.getElementById(type === 'error' ? 'success-message' : 'error-message');
+      otherElement.style.display = 'none';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 5000);
     }
   </script>
 </body>
